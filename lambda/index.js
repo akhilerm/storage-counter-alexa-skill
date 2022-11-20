@@ -4,32 +4,19 @@
  * session persistence, api calls, and more.
  * */
 const Alexa = require('ask-sdk-core');
+const ddbAdapter = require('ask-sdk-dynamodb-persistence-adapter');
+const AWS = require("aws-sdk");
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
+        const speakOutput = 'Welcome, you can say add item or list items. Which would you like to try?';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
             .reprompt(speakOutput)
-            .getResponse();
-    }
-};
-
-const HelloWorldIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'HelloWorldIntent';
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Hello World!';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
             .getResponse();
     }
 };
@@ -97,6 +84,167 @@ const SessionEndedRequestHandler = {
         return handlerInput.responseBuilder.getResponse(); // notice we send an empty response
     }
 };
+const AddItemIntentHandler = {
+    canHandle(handlerInput) {
+        return (
+            Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+            Alexa.getIntentName(handlerInput.requestEnvelope) === "AddItemIntent"
+        );
+    },
+    async handle(handlerInput) {
+        const itemName = handlerInput.requestEnvelope.request.intent.slots.itemName.value;
+        let attributes = await db.getAllAttributes(handlerInput);
+
+        let speakText;
+        if (attributes.hasOwnProperty(itemName)) {
+            speakText = `Item ${itemName} already present`;
+        } else {
+            attributes[itemName] = 0;
+            speakText = `Item ${itemName} added`;
+        }
+
+        await db.setAttributes(handlerInput, attributes);
+
+        return handlerInput.responseBuilder
+            .speak(speakText)
+            .getResponse();
+    },
+};
+const RemoveItemIntentHandler = {
+    canHandle(handlerInput) {
+        return (
+            Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+            Alexa.getIntentName(handlerInput.requestEnvelope) === "RemoveItemIntent"
+        );
+    },
+    async handle(handlerInput) {
+        const itemName = handlerInput.requestEnvelope.request.intent.slots.itemName.value;
+        let attributes = await db.getAllAttributes(handlerInput);
+
+        let speakText;
+        if (!attributes.hasOwnProperty(itemName)) {
+            speakText = `Item ${itemName} not present`;
+        } else {
+            delete attributes[itemName]
+            speakText = `Item ${itemName} removed`;
+        }
+
+        await db.setAttributes(handlerInput, attributes);
+
+        return handlerInput.responseBuilder
+            .speak(speakText)
+            .getResponse();
+    },
+};
+const AddItemCountIntentHandler = {
+    canHandle(handlerInput) {
+        return (
+            Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+            Alexa.getIntentName(handlerInput.requestEnvelope) === "AddItemCountIntent"
+        );
+    },
+    async handle(handlerInput) {
+        const itemName = handlerInput.requestEnvelope.request.intent.slots.itemName.value;
+        const itemCount = handlerInput.requestEnvelope.request.intent.slots.itemCount.value;
+
+        let attributes = await db.getAllAttributes(handlerInput);
+
+        let speakText;
+        if (!attributes.hasOwnProperty(itemName)) {
+            speakText = `Item ${itemName} not present`;
+        } else {
+            // update the item count
+            let count = Number(attributes[itemName]);
+            count += Number(itemCount);
+            attributes[itemName] = count;
+            speakText = `${itemName} now updated to ${attributes[itemName]}`;
+        }
+
+        await db.setAttributes(handlerInput, attributes);
+
+        return handlerInput.responseBuilder
+            .speak(speakText)
+            .getResponse();
+    },
+
+};
+const RemoveItemCountIntentHandler = {
+    canHandle(handlerInput) {
+        return (
+            Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+            Alexa.getIntentName(handlerInput.requestEnvelope) === "RemoveItemCountIntent"
+        );
+    },
+    async handle(handlerInput) {
+        const itemName = handlerInput.requestEnvelope.request.intent.slots.itemName.value;
+        const itemCount = handlerInput.requestEnvelope.request.intent.slots.itemCount.value;
+
+        let attributes = await db.getAllAttributes(handlerInput);
+
+        let speakText;
+        if (!attributes.hasOwnProperty(itemName)) {
+            speakText = `Item ${itemName} not present`;
+        } else {
+            // update the item count
+            let count = Number(attributes[itemName]);
+            count -= Number(itemCount);
+            attributes[itemName] = count;
+            speakText = `${itemName} now updated to ${attributes[itemName]}`;
+        }
+
+        await db.setAttributes(handlerInput, attributes);
+
+        return handlerInput.responseBuilder
+            .speak(speakText)
+            .getResponse();
+    },
+
+};
+const ListItemsIntentHandler = {
+    canHandle(handlerInput) {
+        return (
+            Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+            Alexa.getIntentName(handlerInput.requestEnvelope) === "ListItemsIntent"
+        );
+    },
+    async handle(handlerInput) {
+        const itemName = handlerInput.requestEnvelope.request.intent.slots.itemName.value;
+
+        let attributes = await db.getAllAttributes(handlerInput);
+
+        let speakText = "";
+
+        if (itemName) {
+            if (!attributes.hasOwnProperty(itemName)) {
+                speakText = `Item ${itemName} not present`;
+            } else {
+                speakText = `${itemName} has a count of ${attributes[itemName]}`
+            }
+        } else {
+            Object.keys(attributes).forEach((item) => {
+                speakText += `${item} has ${attributes[item]}. `;
+            })
+        }
+
+        return handlerInput.responseBuilder
+            .speak(speakText)
+            .getResponse();
+    },
+
+};
+const db = {
+
+    async getAllAttributes(handlerInput) {
+        const attributesManager = handlerInput.attributesManager;
+        return await attributesManager.getPersistentAttributes() || {};
+    },
+
+    async setAttributes(handlerInput, attributes) {
+        const attributesManager = handlerInput.attributesManager;
+        attributesManager.setPersistentAttributes(attributes);
+        await attributesManager.savePersistentAttributes();
+    },
+};
 /* *
  * The intent reflector is used for interaction model testing and debugging.
  * It will simply repeat the intent the user said. You can create custom handlers for your intents 
@@ -144,7 +292,11 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        HelloWorldIntentHandler,
+        AddItemIntentHandler,
+        RemoveItemIntentHandler,
+        AddItemCountIntentHandler,
+        RemoveItemCountIntentHandler,
+        ListItemsIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
@@ -152,5 +304,18 @@ exports.handler = Alexa.SkillBuilders.custom()
         IntentReflectorHandler)
     .addErrorHandlers(
         ErrorHandler)
-    .withCustomUserAgent('sample/hello-world/v1.2')
+    .withPersistenceAdapter(
+        new ddbAdapter.DynamoDbPersistenceAdapter(
+            {
+                tableName: process.env.DYNAMODB_PERSISTENCE_TABLE_NAME,
+                createTable: false,
+                dynamoDBClient: new AWS.DynamoDB(
+                    {
+                        apiVersion: 'latest',
+                        region: process.env.DYNAMODB_PERSISTENCE_REGION
+                    }
+                )
+            }
+        )
+    )
     .lambda();
