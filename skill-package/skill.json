@@ -1,0 +1,45 @@
+{
+  "manifest": {
+    "apis": {
+      "custom": {
+        "endpoint": {
+        },
+        "regions": {
+        }
+      }
+    },
+    "manifestVersion": "1.0",
+    "publishingInformation": {
+      "category": "KNOWLEDGE_AND_TRIVIA",
+      "distributionCountries": [],
+      "isAvailableWorldwide": true,
+      "locales": {
+        "en-US": {
+          "description": "Alexa skill to manage item and count",
+          "examplePhrases": [
+            "Alexa open counter"
+          ],
+          "name": "Storage Counter",
+          "summary": "Storage Item Counter skill"
+        },
+        "en-IN": {
+          "description": "Alexa skill to manage item and count",
+          "examplePhrases": [
+            "Alexa open counter"
+          ],
+          "name": "Storage Counter",
+          "summary": "Storage Item Counter skill"
+        },
+        "en-GB": {
+          "description": "Alexa skill to manage item and count",
+          "examplePhrases": [
+            "Alexa open counter"
+          ],
+          "name": "Storage Counter",
+          "summary": "Storage Item Counter skill"
+        }
+      },
+      "testingInstructions": "Sample Testing Instructions."
+    }
+  }
+}

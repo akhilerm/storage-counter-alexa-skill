@@ -1,0 +1,112 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "storage counter",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AddItemIntent",
+          "slots": [
+            {
+              "name": "itemName",
+              "type": "LIST_OF_ITEMS_AT_HOME"
+            }
+          ],
+          "samples": [
+            "add item {itemName}"
+          ]
+        },
+        {
+          "name": "RemoveItemIntent",
+          "slots": [
+            {
+              "name": "itemName",
+              "type": "LIST_OF_ITEMS_AT_HOME"
+            }
+          ],
+          "samples": [
+            "remove item {itemName}"
+          ]
+        },
+        {
+          "name": "AddItemCountIntent",
+          "slots": [
+            {
+              "name": "itemCount",
+              "type": "AMAZON.NUMBER"
+            },
+            {
+              "name": "itemName",
+              "type": "LIST_OF_ITEMS_AT_HOME"
+            }
+          ],
+          "samples": [
+            "add {itemCount} to {itemName}"
+          ]
+        },
+        {
+          "name": "RemoveItemCountIntent",
+          "slots": [
+            {
+              "name": "itemCount",
+              "type": "AMAZON.NUMBER"
+            },
+            {
+              "name": "itemName",
+              "type": "LIST_OF_ITEMS_AT_HOME"
+            }
+          ],
+          "samples": [
+            "remove {itemCount} from {itemName}"
+          ]
+        },
+        {
+          "name": "ListItemsIntent",
+          "slots": [
+            {
+              "name": "itemName",
+              "type": "LIST_OF_ITEMS_AT_HOME"
+            }
+          ],
+          "samples": [
+            "list items",
+            "list count of {itemName}"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "values": [
+            {
+              "name": {
+                "value": "money"
+              }
+            },
+            {
+              "name": {
+                "value": "rice"
+              }
+            }
+          ],
+          "name": "LIST_OF_ITEMS_AT_HOME"
+        }
+      ]
+    }
+  },
+  "version": "1"
+}
