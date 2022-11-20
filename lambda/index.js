@@ -1,8 +1,3 @@
-/* *
- * This sample demonstrates handling intents from an Alexa skill using the Alexa Skills Kit SDK (v2).
- * Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
- * session persistence, api calls, and more.
- * */
 const Alexa = require('ask-sdk-core');
 const ddbAdapter = require('ask-sdk-dynamodb-persistence-adapter');
 const AWS = require("aws-sdk");
@@ -47,25 +42,6 @@ const CancelAndStopIntentHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .getResponse();
-    }
-};
-/* *
- * FallbackIntent triggers when a customer says something that doesn’t map to any intents in your skill
- * It must also be defined in the language model (if the locale supports it)
- * This handler can be safely added but will be ingnored in locales that do not support it yet 
- * */
-const FallbackIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.FallbackIntent';
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Sorry, I don\'t know about that. Please try again.';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
             .getResponse();
     }
 };
@@ -154,6 +130,8 @@ const AddItemCountIntentHandler = {
             speakText = `Item ${itemName} not present`;
         } else {
             // update the item count
+	    // both the count from the DB as well as from the echo device need
+	    // be converted to number
             let count = Number(attributes[itemName]);
             count += Number(itemCount);
             attributes[itemName] = count;
@@ -232,6 +210,9 @@ const ListItemsIntentHandler = {
     },
 
 };
+// All DB operations require first getting the value before writing it,
+// other wise it was causing overwrite in DynamoDB. 
+// TODO: @akhilerm fix to write items directly instead of get->set
 const db = {
 
     async getAllAttributes(handlerInput) {
