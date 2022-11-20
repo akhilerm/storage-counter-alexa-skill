@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "storage counter",
+      "invocationName": "counter",
       "intents": [
         {
           "name": "AMAZON.CancelIntent",
