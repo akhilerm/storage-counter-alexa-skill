@@ -12,7 +12,7 @@ const LaunchRequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome, you can say add item or list items. Which would you like to try?';
+        const speakOutput = 'Storage Counter started';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
